@@ -1,0 +1,38 @@
+---
+title: "visualization 1"
+output: html_document
+---
+
+First read in some data
+```{r}
+pm = read.table("../data/post.mean.singlerun.txt",header=TRUE)
+```
+
+Normalize effects so largest effect always positive and (optionally) divide by L2 norm to make effects "comparable".
+```{r}
+L2norm = function(x){return(sqrt(sum(x^2)))}
+
+norm_effects = function(m,standardize=TRUE){
+  max_pos = apply(m,1,max)
+  max_neg = apply(-m,1,max)
+  max_sign = ifelse(max_pos>max_neg, 1,-1) #find the sign of the largest effect
+  if(standardize){max_sign=max_sign* apply(m,1,L2norm)}
+  m/max_sign
+}
+pm_norm= norm_effects(pm)
+```
+
+
+Subset the eQTLs with strongest effects and produce interactive plot.
+```{r}
+library(qtlcharts)
+max_eff = apply(abs(pm),1,max)
+pmsubset = pm_norm[max_eff>3,]
+iplotCurves(pmsubset)
+```
+
+```{r}
+pm.svd = svd(pmsubset)
+iplotCurves(pmsubset,1:44,cbind(pm.svd$u[,1],pm.svd$u[,2]),cbind(pm.svd$u[,3],pm.svd$u[,4]))
+```
+
