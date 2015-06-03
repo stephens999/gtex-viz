@@ -31,8 +31,15 @@ pmsubset = pm_norm[max_eff>3,]
 iplotCurves(pmsubset)
 ```
 
+Plot curves, with scatter plot at bottom being PCs
 ```{r}
 pm.svd = svd(pmsubset)
 iplotCurves(pmsubset,1:44,cbind(pm.svd$u[,1],pm.svd$u[,2]),cbind(pm.svd$u[,3],pm.svd$u[,4]))
+```
+
+Plot curves, with scatter plot at bottom indicating standard deviations of effects (to try to separate constant effects from tissue-specific)
+```{r}
+pmsubset.sd = apply(pmsubset,1,sd)
+iplotCurves(pmsubset,1:44,cbind(pm.svd$u[,2],pmsubset.sd))
 ```
 
