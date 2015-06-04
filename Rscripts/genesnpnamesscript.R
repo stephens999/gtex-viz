@@ -16,3 +16,8 @@ rownames(pm)=genesnpnames
 
 head(pm)
 
+genes <- sapply(rownames(pm), function(p) strsplit(p, '.', fixed=T)[[1]][1])
+
+bestrows <- lapply(unique(genes), function(gene) {x<-pm[genes==gene,]; i<-which.max(apply(x, 1, function(i) max(abs(i)))); return(x[i,])})
+
+strongmeans <- matrix(unlist(bestrows), ncol = 44, byrow = TRUE)
