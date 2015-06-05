@@ -1,0 +1,1 @@
+This script allows one to sort through the posterior means and choose the strongest snp for each gene (as defined by maximum absolute posterior mean across tissues). Please run it in the /analysis/june2014/types_v1/et_shrunken_batch1_withbma directory. It creates the file "strongmeans_first_batch.txt"x
