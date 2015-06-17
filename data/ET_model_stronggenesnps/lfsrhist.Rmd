@@ -8,7 +8,7 @@ setwd("~/gtex-viz/data/ET_model_stronggenesnps/")
 lfsr = read.table("lfsr.et_withbma.txt")
 ```
 
-Now plot a histogram of the number of tissues with lfsr$\leq$thresh.
+Now plot a histogram of the number of tissues with lfsr $\leq$thresh.
 
 ```{r}
 lfindex=apply(lfsr,1,function(x){sum(x<=0.10)})

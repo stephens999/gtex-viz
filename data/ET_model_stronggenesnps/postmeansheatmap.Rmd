@@ -1,0 +1,21 @@
+---
+title: "postmeansheatmap"
+output: html_document
+---
+As mentioned, I can't get a 'non-blue' plot with heatmap 2, so you can use heatmap2 to get the scale and make the qualitative plots with heatmap. Here I plot a heatmap of the matrix-ash shrunken t stats and non0shrunken t stats. You could also make a heatamp with the
+
+```{r}
+setwd("~/gtex-viz/data/ET_model_stronggenesnps/")
+postmeans = read.table("post.mean.et_withbma.txt")
+tstats=na.omit(read.table("max_tscore_eQTL.table.txt"))[,-c(1,2,47)]
+
+tissue.names=colnames(postmeans)
+
+row.names(postmeans) <- seq(1, nrow(postmeans),1)
+
+#library("gplots") I can't get a 'non-blue' plot with heatmap 2, so you can use heatmap2 to get the scale and make the qualitative plots with heatmap
+heatmap(t(postmeans),main="ShrunkenTStatistics",labRow=tissue.names)
+
+heatmap(t(tstats),labRow=tissue.names,main="T.stat")
+```
+
