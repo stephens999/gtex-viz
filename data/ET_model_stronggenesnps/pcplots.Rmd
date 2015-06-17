@@ -1,0 +1,221 @@
+---
+title: "pcs"
+output: html_document
+---
+
+SVD Exploration Across 44 Tissues, 
+========================================================
+
+In this document, I use Singular Value Decomposition of a matrix-ash Shrunken Tstats where *M* (16,407) gene-snp Pairs by *R* (44) tissue matrix in order to separate the heterogeneity of effects across tissues.
+
+Suppose we have a covariance matrix $XX^{t}$, such that if
+
+$X=UdV^{t}$
+$X^{t}=VdU^{t}$
+$XX^{t}=Ud^{2}U^{t}$
+
+So we can see that the R $Mx1$ columns of $U$ are the eigen vector of the covariance matrix of genes, while 
+
+$X^{t}X=Vd^{2}V{t}$ demonstrates that the R $Rx1$ columns of $V$ are the eigenvectors of the correlation matrix between tissues.
+
+Projecting every tissue's vector of gene expression values across $M$ genes on the first eigenvector $U$, 
+
+$U^{t}\times X$ we receive the 'score' or position of each tissue in the space of the eigenvector of the correlation matrix between genes. Similarly, we can project every gene on the eigenvector of the correlation matrix between tissue, 
+
+$X$ $\times$ $V$ so that each gene has a position in the space which captures patterns of variation across tissues.
+
+
+Below, I first consider the dimensional reconstruction using the first three eigenprojections:
+
+```{r, echo=FALSE,cache=TRUE}
+# ----- Define a function for plotting a matrix ----- #
+#some useful functions and variables
+rot90 <- function(a) {
+whichone = max(ncol(a),nrow(a))
+a90 = t(a[whichone:1,])
+return(a90)
+}
+library(gplots)
+ColorRamp = colorpanel(100,low="dark blue",mid="white",high="dark red")
+
+myImagePlot <- function(x, ...){
+     min <- min(x)
+     max <- max(x)
+     yLabels <- rownames(x)
+     xLabels <- colnames(x)
+     title <-c()
+  # check for additional function arguments
+  if( length(list(...)) ){
+    Lst <- list(...)
+    if( !is.null(Lst$zlim) ){
+       min <- Lst$zlim[1]
+       max <- Lst$zlim[2]
+    }
+    if( !is.null(Lst$yLabels) ){
+       yLabels <- c(Lst$yLabels)
+    }
+    if( !is.null(Lst$xLabels) ){
+       xLabels <- c(Lst$xLabels)
+    }
+    if( !is.null(Lst$title) ){
+       title <- Lst$title
+    }
+  }
+# check for null values
+if( is.null(xLabels) ){
+   xLabels <- c(1:ncol(x))
+}
+if( is.null(yLabels) ){
+   yLabels <- c(1:nrow(x))
+}
+
+layout(matrix(data=c(1,2), nrow=1, ncol=2), widths=c(4,1), heights=c(1,1))
+
+ # Red and green range from 0 to 1 while Blue ranges from 1 to 0
+ ColorRamp <- rgb( seq(0,1,length=256),  # Red
+                   seq(0,1,length=256),  # Green
+                   seq(1,0,length=256))  # Blue
+ ColorLevels <- seq(min, max, length=length(ColorRamp))
+
+ # Reverse Y axis
+ reverse <- nrow(x) : 1
+ yLabels <- yLabels[reverse]
+ x <- x[reverse,]
+
+ # Data Map
+ par(mar = c(3,5,2.5,2))
+ image(1:length(xLabels), 1:length(yLabels), t(x), col=ColorRamp, xlab="",
+ ylab="", axes=FALSE, zlim=c(min,max))
+ if( !is.null(title) ){
+    title(main=title)
+ }
+axis(BELOW<-1, at=1:length(xLabels), labels=xLabels, cex.axis=0.7,las=2)
+ axis(LEFT <-2, at=1:length(yLabels), labels=yLabels, las=1,
+ cex.axis=0.7)
+
+ # Color Scale
+ par(mar = c(3,2.5,2.5,2))
+ image(1, ColorLevels,
+      matrix(data=ColorLevels, ncol=length(ColorLevels),nrow=1),
+      col=ColorRamp,
+      xlab="",ylab="",
+      xaxt="n")
+
+ layout(1)
+}
+
+#install.packages("MASS")
+#install.packages("gplots")
+#library(gplots)
+#truth=read.table("truth.txt.gz",header=T)
+#betas=truth[truth$config!="0",paste0(rep("beta.g.",9),seq(1:9))]
+#X=betas
+
+```
+First, we load the data:
+
+```{r}
+setwd("~/gtex-viz/data/ET_model_stronggenesnps/")
+postmeans = read.table("post.mean.et_withbma.txt")
+tstats=na.omit(read.table("max_tscore_eQTL.table.txt"))[,-c(1,2,47)]
+
+tissue.names=colnames(postmeans)
+
+
+X=postmeans
+```
+
+
+```{r,echo=FALSE}
+colorRamp(c("red", "green"))( (0:4)/4 ) ## (x) , x in [0,1]
+colorRampPalette(c("blue", "red"))( 4 ) ## (n)
+zlim = c(min(X),max(X))
+
+
+
+#plot data
+
+image(rot90(t(scale(t(tstats[,-c(1,2,47)]),center=T))),axes=FALSE,xlab="Tissues",ylab="Genes",cex.lab=3,col= colorRampPalette(c("blue", "red"))( 4 ),zlim=zlim,main="TStats",cex.main=3)
+
+image(rot90(t(scale(t(X),center=T))),axes=FALSE,xlab="Tissues",ylab="Genes",cex.lab=3,col= colorRampPalette(c("blue", "red"))( 4 ),zlim=zlim,main="MatrixAshTstats",cex.main=3)
+#image(rot90(t(scale(t(X),center=TRUE,scale=FALSE))),axes=FALSE,xlab="samples",ylab="fatures",cex.lab=2,col=ColorRamp,zlim=zlim,main="Data (centered)",cex.main=3)
+
+
+
+```
+
+Now, we compute the eigenvectors without centering.
+```{r,echo=T, cache=T}
+
+names=tissue.names
+#Take svd
+#svd.X = svd(t(scale(t(X),center=TRUE,scale=FALSE)))
+svd.X = svd(X)
+u = svd.X$u; v=svd.X$v; d=svd.X$d
+
+
+#1st principal matrix 
+pcm1 = d[1]*matrix(u[,1])%*%t(matrix(v[,1]))
+
+image(rot90(pcm1),axes=FALSE,xlab="rank-1 approx",ylab="",main="PC 1",col=colorRampPalette(c("blue", "red"))( 4 ),zlim=zlim,cex.main=3,cex.lab=2)
+
+#2nd principal matrix 
+pcm2 = d[2]*matrix(u[,2])%*%t(matrix(v[,2]))
+par(mar=c(6,6,6,1))
+image(rot90(pcm2),axes=FALSE,xlab="rank-1 approx",ylab="",main="PC 2",col=colorRampPalette(c("blue", "red"))( 4 ),zlim=zlim,cex.main=3,cex.lab=2)
+
+#3rd principal matrix 
+pcm3 = d[3]*matrix(u[,3])%*%t(matrix(v[,3]))
+par(mar=c(6,6,6,1))
+image(rot90(pcm3),axes=FALSE,xlab="rank-1 approx",ylab="",main="PC 3",col=colorRampPalette(c("blue", "red"))( 4 ),zlim=zlim,cex.main=3,cex.lab=2)
+
+#PC 1 + PC 2
+par(mar=c(6,6,6,1))
+image(rot90(pcm1+pcm2),axes=FALSE,xlab="rank-2 approx",ylab="",main="PC1+PC2",col=colorRampPalette(c("blue", "red"))( 4 ),zlim=zlim,cex.main=3,cex.lab=2)
+
+#PC 1 + PC 2 + PC 3
+par(mar=c(6,6,6,1))
+image(rot90(pcm1+pcm2+pcm3),axes=FALSE,xlab="rank-3 approx",ylab="",main="PC1+PC2+PC3",col=colorRampPalette(c("blue", "red"))( 4 ),zlim=zlim,cex.main=3,cex.lab=2)
+
+
+
+heatmap.2(cor(X), Colv = FALSE, Rowv=FALSE, col=redgreen(10), scale="none", key=TRUE, symkey=FALSE, density.info="none", trace="none", cexRow=0.5,labRow=c(names),labCol=c(names))
+
+
+
+
+```
+
+Here, we plot the proportion of variation explained by each eigenvector, and project each tissue on the eigenvector of the correlation matrix between gene, thus providing a tissue-specific summary of the global genetic variation. 
+
+```{r fig.width=7, fig.height=6}
+
+par(mfrow=c(1,2))
+
+
+svd.X=svd(X)
+u = svd.X$u; v=svd.X$v; d=svd.X$d
+pc = svd.X$v[,1:3]%*%diag(svd.X$d[1:3])
+#pc2=svd.X$u[,1:3]%*%diag(svd.X$d[1:3])
+
+
+par(mfrow=c(1,2))
+names=tissue.names
+plot(d^2/sum(d^2),main="ProportionVariationExplained",xlab="NumberofEigenTissues")
+plot(pc[,1],pc[,2],main="EigenGene Scores on 1st 2 PCs",xlab="EigenGene1",ylab="EigenGene2",col=c(1:9),cex=0.8)
+text(pc[,1],pc[,2],names,col=c(1:44),pos=1)
+```
+
+Here, I plot a heatmap reflecting similar patterns of loading among tissues on the first three PCs, without centering
+
+```{r, without centering}
+#score.1=t(u[,1])%*%as.matrix(betas)
+#score.2=t(u[,2])%*%as.matrix(betas)
+#betas=truth[truth$config!="0",paste0(rep("beta.g.",9),seq(1:9))]
+#Xc = t(scale(t(betas),center=TRUE,scale=FALSE))###
+#C.nbyn =  t(Xc)%*%Xc
+#C.nbyn=t(X)%*%X
+#heatmap.2(C.nbyn, Colv = FALSE, Rowv=FALSE, col=redgreen(5), scale="none", key=TRUE, symkey=FALSE, density.info="none", trace="none", cexRow=0.5)
+myImagePlot(t(pc[,1:3]),yLabels=c("PC1","PC2","PC3"),main="First 3 PCs",xLabels=c(names),las=2)
+```
+
