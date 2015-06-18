@@ -1,0 +1,24 @@
+---
+title: "lfsr.heatmap"
+output: html_document
+---
+
+The purpose of this file is to produce clustering by LFSR values using the ET model.
+First read in some data
+```{r}
+pathdir=("../data/ET_model_stronggenesnps/")
+lfsr = read.table(paste0(pathdir,"lfsr.et_withbma.txt"))
+```
+
+
+
+We want to explore any patterns of clustering by LFSR.
+
+```{r, echo=FALSE}
+#To plot a heatmap, we should remove the rowlabels since the gene=snp names are not readable.
+row.names(lfsr) <- seq(1, nrow(lfsr),1)
+#library("gplots") I can't get a 'non-blue' plot with heatmap 2, so you can use heatmap2 to get the scale and make the qualitative plots with heatmap
+heatmap(t(lfsr),col=gray.colors(1000,start=0.9,end=0.1),main="LFSRwithBMA")
+```
+
+

@@ -1,0 +1,18 @@
+---
+title: "lfsrhist"
+output: html_document
+---
+
+```{r}
+pathdir=("../data/ET_model_stronggenesnps/")
+lfsr = read.table(paste0(pathdir,"lfsr.et_withbma.txt"))
+```
+
+Now plot a histogram of the number of tissues with lfsr $\leq$thresh.
+
+```{r}
+lfindex=apply(lfsr,1,function(x){sum(x<=0.10)})
+hist(lfindex,main="LFSR<=0.10,ETModel",freq=FALSE,nclass=40)
+```
+
+
