@@ -1,0 +1,37 @@
+---
+title: "postmeansheatmap"
+output: html_document
+---
+
+Here, I use 'myImage plot" to visualize the intensity of the shrunken posterior means of the 1) T statistics and 2) the bhats, using $E(B|ET,Data)$ where we simply transform the shrunken t statistics by multiplying by the se.betahat.
+
+```{r}
+source("../Rscripts/plotfunctionsurbut.R")
+pathdir=("../data/ET_model_stronggenesnps/")
+postmeans = read.table(paste0(pathdir,"post.mean.et_withbma.txt"))
+tstats=na.omit(read.table(paste0(pathdir,"max_tscore_eQTL.table.txt")))[,-c(1,2,47)]
+se.gp.hat=na.omit(read.table(paste0(pathdir,"max_sebeta_eQTL.table.txt")))[,-c(1,2)]
+tissue.names=colnames(postmeans)
+
+row.names(postmeans) <- seq(1, nrow(postmeans),1)
+
+#library("gplots") I can't get a 'non-blue' plot with heatmap 2, so you can use heatmap2 to get the scale and make the qualitative plots with heatmap
+myImagePlot(t(postmeans),yLabels=tissue.names,main="MatrixAshShrunkenT",xLabels=rep(1,nrow(postmeans)),las=2)
+
+myImagePlot(t(tstats),yLabels=tissue.names,main="OriginalTStats",xLabels=rep(1,nrow(postmeans)),las=2)
+
+
+```
+
+
+We can also plot the converted posterior means $(i.e., E(B|ET,Data))$.
+
+```{r}
+converted.means=se.gp.hat*postmeans
+betahat=se.gp.hat*tstats
+#library("gplots") I can't get a 'non-blue' plot with heatmap 2, so you can use heatmap2 to get the scale and make the qualitative plots with heatmap
+myImagePlot(t(converted.means),yLabels=tissue.names,main="E(B|ET,Data)",xLabels=rep(1,nrow(postmeans)),las=2)
+
+myImagePlot(t(betahat),yLabels=tissue.names,main="OriginalBhats",xLabels=rep(1,nrow(postmeans)),las=2)
+
+```
