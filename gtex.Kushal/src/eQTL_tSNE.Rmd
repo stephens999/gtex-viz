@@ -1,0 +1,99 @@
+---
+title: "t-SNE of eQTLs in GTEx"
+author: "Stephens Lab"
+date: "June 19, 2015"
+output: html_document
+---
+
+```{r packages,echo=FALSE}
+suppressMessages(suppressWarnings(library(tsne)))
+suppressMessages(suppressWarnings(library(qtlcharts)))
+suppressMessages(suppressWarnings(library(data.table)))
+#library(iplots)
+
+```
+
+
+In this script, we perform the 2-D t-SNE of the normalized posterior mean estimates of the most active GTEx cis-eQTLs.
+
+- Get the gene information matrix for Homo sapiens **gene_info_eqtl.txt** matrix from the BioMart Webpage.
+
+```{r gene_info_eqtls}
+
+gene_info_eqtl = data.frame(fread("../data/gene_info_eqtl.txt"));
+
+length(gene_info_eqtl[,1]) ## number of IDs that found matches (no repeats)
+
+index_unique_IDs=match(unique(gene_info_eqtl[,1]),gene_info_eqtl[,1]);
+
+## all are unique IDs in this case (Check !!)
+```
+
+- Get the gene snp names from the GTEx eQTL data, extract the gene names and match them to the BioMart gene info matrix.
+
+```{r gene_GTEx}
+genesnp.names=as.vector(as.matrix(read.table("../data/gene_snp_names.txt")));
+gene_names_GTEX=substring(genesnp.names,1,15);
+
+matching_labels_eqtls_to_gene_info= match(gene_names_GTEX,gene_info_eqtl[,1]);
+```
+
+- Extract the labels that match between the given dataset and the BioMArt gene info matrix, 
+
+```{r extract_common_genes}
+
+index_not_found=which(is.na(matching_labels_eqtls_to_gene_info)==TRUE);
+
+```
+
+Perform t-SNE on the 16407 most active cis-eQTLs and filter the data so that only the cis genes for which we have BioMart info are available.
+
+```{r}
+tsne_data=read.table("../data/tsne_postmean_eqtlbma.txt");
+temp=tsne_data[-index_not_found,];
+
+matching_labels=matching_labels_eqtls_to_gene_info[which(!is.na(matching_labels_eqtls_to_gene_info))];
+
+flag=paste0(gene_info_eqtl[matching_labels,1],", ",
+                      "name-",gene_info_eqtl$Associated.Gene.Name[matching_labels],", ",
+                      "descr-",gene_info_eqtl$Description[matching_labels],",",
+                      "chr-",gene_info_eqtl$Chromosome.Name[matching_labels]);
+
+
+rownames(temp)=flag;
+
+```
+
+
+- Read the posterior shrunk eQTL effects 
+
+```{r post_mean_shrink}
+
+post.mean.shrink = read.table("../data/post.mean.et_withbma.normalized.txt");
+#post.mean.shrink=data_max_tscore[complete.cases(data_max_tscore),-c(1,2,47)];
+post.mean.shrink.matched=post.mean.shrink[-index_not_found,];
+
+rownames(post.mean.shrink.matched)=rownames(temp);
+
+n_index=2000;
+
+```
+
+
+
+- t-SNE plot of the cis-eQTLs and also an interactive chart where we map the t-SNE projections of the first `r n_index ` of these eQTLs to their shrunken normalized posterior mean effects.
+
+
+```{r tsne_postmean_shrink}
+
+tissue_specific_index=order(apply(post.mean.shrink.matched,1,max),decreasing=TRUE)[1:10000];
+
+plot(temp[tissue_specific_index,1],temp[tissue_specific_index,2],xlab="t-SNE projection 1",ylab="t-SNE projection 2");
+
+suppressMessages(suppressWarnings(iplot(temp[tissue_specific_index,1],temp[tissue_specific_index,2],
+                                        rep(1,10000),rownames(temp[tissue_specific_index,]))))
+
+suppressMessages(suppressWarnings(iplotCurves(post.mean.shrink.matched[1:2000,], 1:44, temp[1:2000,])));
+
+
+```

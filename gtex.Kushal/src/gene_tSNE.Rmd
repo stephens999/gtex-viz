@@ -1,0 +1,70 @@
+---
+title: "t-SNE plots for GTEX genes"
+date: "June 18, 2015"
+output: html_document
+---
+
+```{r packages,echo=FALSE}
+suppressMessages(suppressWarnings(library(tsne)))
+suppressMessages(suppressWarnings(library(qtlcharts)))
+suppressMessages(suppressWarnings(library(data.table)))
+suppressMessages(suppressWarnings(library(maptpx)))
+
+#library(iplots)
+
+```
+
+
+- Read the gene info matrix from BioMart and try to map the 5000 genes of interest to the genes in the gene info table. 
+
+```{r gene_info}
+
+gene_info_matrix=read.table("../data/gene_info_matrix.txt");
+
+matching_labels_reads_to_gene_info = as.vector(as.matrix(read.table("../data/mapping_genes_to_info.txt")));
+
+gene_tissue.data=read.table("../data/reads_per_tissue.txt");
+
+gene_tissue.data_matched=gene_tissue.data[matching_labels_reads_to_gene_info,];
+
+ensembl_filtered <- as.vector(as.matrix(read.table("../data/ensembl_ID_filtered.txt")));
+
+
+```
+
+- Perform t-SNE (2D) on the normalized genes expression (using the norm_effects()  function, L-2 norm) and match those labels that occur in the gene info matrix derived above.
+
+```{r tsne_genes}
+
+tsne_genes_2 <- read.table("../data/tsne_norm_genes_tissue.txt");
+
+tsne_genes_2_matched=tsne_genes_2[matching_labels_reads_to_gene_info,];
+
+temp=tsne_genes_2_matched; 
+rownames(temp)=paste0(gene_info_matrix$ensembl_gene_id,", ",
+                      "name-",gene_info_matrix$external_gene_name,", ",
+                      "descr-",gene_info_matrix$description,",",
+                      "chr-",gene_info_matrix$chromosome_name, ", ",
+                      "gc-",gene_info_matrix$percentage_gc_content);
+
+rownames(gene_tissue.data_matched)=rownames(temp);
+
+index_top_1000=match(ensembl_filtered[1:1000],gene_info_matrix[,1]);
+
+index_top_1000 = index_top_1000[!is.na(index_top_1000)];
+
+#suppressMessages(suppressWarnings(iplotCurves(log(gene_tissue.data_matched[index_top_1000,]+1), 1:53, temp[index_top_1000,],
+ #           group=gene_info_matrix$chromosome_name[index_top_1000])));
+
+```
+
+- Plot the t-SNE maps for the genes and try to match them to the average expression data (log of reads) for individual tissues.
+
+```{r tsne_plot_genes}
+
+suppressMessages(suppressWarnings(iplot(temp[,1],temp[,2],
+                                        rep(1,dim(temp)[1]),rownames(temp))))
+
+suppressMessages(suppressWarnings(iplotCurves(log(gene_tissue.data_matched[index_top_1000,]+1), 1:53, temp[index_top_1000,])))
+
+```

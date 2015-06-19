@@ -1,0 +1,66 @@
+---
+title: "t-SNE plots for GTEX tissues"
+author: "Stephens Lab"
+date: "June 19, 2015"
+output: html_document
+---
+
+```{r packages,echo=FALSE}
+suppressMessages(suppressWarnings(library(tsne)))
+suppressMessages(suppressWarnings(library(qtlcharts)))
+suppressMessages(suppressWarnings(library(data.table)))
+suppressMessages(suppressWarnings(library(maptpx)))
+
+#library(iplots)
+
+```
+
+
+The t-SNE plot of the 8555 GTEX samples based on the reads data of the top 5000 genes based on the mean expression levels is given as follows 
+
+```{r tissue_tSNE}
+
+sample_id_sub <- read.table("../data/samples_id.txt")[,3];
+
+males_identifier=as.numeric(as.matrix(read.table("../data/males_identifier.txt")));
+females_identifier=as.numeric(as.matrix(read.table("../data/females_identifier.txt")));
+
+gender_label=array(0,length(males_identifier)+length(females_identifier));
+
+gender_label[males_identifier]="MALE";
+gender_label[females_identifier]="FEMALE";
+sample_id_sub_gender=paste0(sample_id_sub,"_",gender_label);
+
+#reads.data=data.frame(fread("../data/reads_expression_top_5000_genes.txt"))[,-1];
+
+#reads.data_100_genes=reads.data[,1:100];
+
+tsne_samples <- read.table("../data/tsne_samples.txt");
+
+options(warn=-1)
+suppressWarnings(suppressMessages(iplot(tsne_samples[,1],tsne_samples[,2],as.numeric(sample_id_sub),sample_id_sub_gender)))
+
+
+#iplotCurves(log(reads.data_100_genes+1), 1:100, tsne_samples,
+ #           group=as.numeric(sample_id_sub));
+
+
+
+
+```
+
+The colors in the above plot are by the tissue labels.
+
+We then fitted the Admixture model and applied the t-SNE on the topic proportion matrix of the Admixture model. It is presented below.
+
+```{r topicmodel_tsne_tissue}
+
+
+topicmodel_tsne_15 = read.table("../data/topicmodel_samples_tsne_15.txt");
+
+suppressWarnings(suppressMessages(iplot(topicmodel_tsne_15[,1],topicmodel_tsne_15[,2],as.numeric(sample_id_sub),sample_id_sub_gender)))
+
+
+```
+
+The colors in the above plot are by the tissue labels.
