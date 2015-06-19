@@ -1,0 +1,38 @@
+---
+title: "sfa.genes.shiny"
+author: "StephensLab"
+date: "June 19, 2015"
+output: html_document
+runtime: shiny
+---
+
+In this script, we perform Sparse Factor Analysis (SFA) on the genes based on their reads expression in different tissues and then we present an interactive bar plot of the factors. It would be interesting to note if any of these factors are tissue specific or not. Here we choose the number of SFA factors to be $15$. We used the **sfa** package by Engelhardt and Stephens for performing the Sparse Factor Analysis. 
+
+##  SFA of reads expression of the genes 
+
+```{r}
+
+lambda=as.matrix(read.table("../data/genes_expr_tissue_15/reads_genes_per_tissue_15_lambda.out"));
+fac_mat=as.matrix(read.table("../data/genes_expr_tissue_15/reads_genes_per_tissue_15_F.out"));
+
+K=15;
+
+sample_id_sub <- read.table("../data/samples_id.txt")[,3];
+
+
+
+inputPanel(
+  selectInput("fac_lab", label = "Number of factors:",
+              choices = 1:K, selected = 1)
+ 
+)
+
+renderPlot({
+              par(mar=c(14,5,5,4))
+              barplot(fac_mat[as.numeric(input$fac_lab),],las=2,ylim=c(-8,8),xaxt="n")
+              axis(1,at=seq(0.5,63.5,length.out=53),unique(sample_id_sub),las=2)
+              title(paste0("Patterns of effect for factor",as.numeric(input$fac_lab)))
+})
+
+```
+
