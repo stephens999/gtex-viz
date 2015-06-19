@@ -1,0 +1,40 @@
+---
+title: "sfa.eqtl.shiny"
+author: "StephensLab"
+date: "June 19, 2015"
+output: html_document
+runtime: shiny
+---
+
+In this script, we present the Sparse Factor analysis (SFA) of the 16407 most active cis-eQTLs as obtained from Matrix-eQTL. We used the **sfa** package by Engelhardt and Stephens. We present the SFA factor barplots for the posterior mean shrunken eQTL. 
+
+```{r}
+
+lambda=as.matrix(read.table("../data/sfa_MatrixEqtl_shrink_10/sfa_MatrixEqtl_shrink_10_lambda.out"));
+fac_mat=as.matrix(read.table("../data/sfa_MatrixEqtl_shrink_10/sfa_MatrixEqtl_shrink_10_F.out"));
+
+K=10;
+
+names_tissues <-  read.table("../data/tissue_names_eqtl.txt")[-1];
+
+tissue_names_filtered=unlist(lapply(as.matrix(names_tissues),
+                            function(x) substring(x,32,nchar(x)-7)));
+
+
+
+inputPanel(
+  selectInput("fac_lab", label = "Number of factors:",
+              choices = 1:K, selected = 1)
+ 
+)
+
+renderPlot({
+              par(mar=c(14,5,5,4))
+              barplot(fac_mat[as.numeric(input$fac_lab),],las=2,ylim=c(-8,8),xaxt="n")
+              axis(1,at=seq(0.5,52.5,length.out=44),tissue_names_filtered,las=2)
+              title(paste0("Patterns of effect for factor",as.numeric(input$fac_lab)))
+})
+
+```
+
+
