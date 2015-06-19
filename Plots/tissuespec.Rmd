@@ -45,7 +45,7 @@ s.j=as.matrix(s.j)
 post.mean.converted=posterior.means[j,]*s.j[j,]
 mar.sd.converted=s.j[j,]*sqrt(marginal.var[j,])
 
-b=barplot(post.mean.converted,main=paste0("PostTissueMeans,",genesnpnames[j]),names=tissue.names,col=col.mat,las=2,ylim=c((min(post.mean.converted)-0.05),(max(post.mean.converted)+0.10)),cex.names=0.5,ylab="PosteriorMean")
+b=barplot(post.mean.converted,main=paste0("Posterior Tissue Means",genesnpnames[j]),names=tissue.names,col=col.mat,las=2,ylim=c((min(post.mean.converted)-0.05),(max(post.mean.converted)+0.10)),cex.names=0.5,ylab="Posterior Mean")
 
   mean=as.numeric(post.mean.converted)
   sd=as.numeric(mar.sd.converted)
@@ -56,7 +56,7 @@ b=barplot(post.mean.converted,main=paste0("PostTissueMeans,",genesnpnames[j]),na
 
 mle=as.matrix(t.j[j,]*s.j[j,])
 bhat=barplot(mle,main=paste0("b.hat",genesnpnames[j]),names=tissue.names,las=2,ylim=c((min(mle)-0.05),(max(mle)+0.10)),cex.names=0.5,ylab="MLE")
-t=barplot(as.matrix(t.j[j,]),main=paste0("t.stat,",genesnpnames[j]),names=tissue.names,las=2,ylim=c((min(t.j[j,])-0.05),(max(t.j[j,])+0.10)),cex.names=0.5,ylab="MLE")
+t=barplot(as.matrix(t.j[j,]),main=paste0("t.stat",genesnpnames[j]),names=tissue.names,las=2,ylim=c((min(t.j[j,])-0.05),(max(t.j[j,])+0.10)),cex.names=0.5,ylab="MLE")
 
 
 }
@@ -87,7 +87,7 @@ s.j=as.matrix(s.j)
 post.mean.converted=posterior.means[j,]*s.j[j,]
 mar.sd.converted=s.j[j,]*sqrt(marginal.var[j,])
 
-b=barplot(post.mean.converted,main=paste0("PostTissueMeans,",genesnpnames[j]),names=tissue.names,col=col.mat,las=2,ylim=c((min(post.mean.converted)-0.05),0),cex.names=0.5,ylab="PosteriorMean")
+b=barplot(post.mean.converted,main=paste0("Posterior Tissue Means,",genesnpnames[j]),names=tissue.names,col=col.mat,las=2,ylim=c((min(post.mean.converted)-0.05),0),cex.names=0.5,ylab="Posterior Mean")
 
   mean=as.numeric(post.mean.converted)
   sd=as.numeric(mar.sd.converted)
@@ -98,7 +98,7 @@ b=barplot(post.mean.converted,main=paste0("PostTissueMeans,",genesnpnames[j]),na
 
 mle=as.matrix(t.j[j,]*s.j[j,])
 bhat=barplot(mle,main=paste0("b.hat",genesnpnames[j]),names=tissue.names,las=2,ylim=c((min(mle)-0.05),0),cex.names=0.5,ylab="MLE")
-t=barplot(as.matrix(t.j[j,]),main=paste0("t.stat,",genesnpnames[j]),names=tissue.names,las=2,ylim=c(min(t.j[j,]),0),cex.names=0.5,ylab="MLE")
+t=barplot(as.matrix(t.j[j,]),main=paste0("t.stat",genesnpnames[j]),names=tissue.names,las=2,ylim=c(min(t.j[j,]),0),cex.names=0.5,ylab="MLE")
 
 
 }
