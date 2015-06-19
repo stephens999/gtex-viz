@@ -14,12 +14,9 @@ thresh=0.05
   
   ##create a matrix showing whether or no lfsr satisfies threshold
 
-sigmat=matrix(NA,ncol=ncol(lfsr),nrow=nrow(lfsr))
-for(i in 1:nrow(lfsr)){
-  for(j in 1:ncol(lfsr)){
-    sigmat[i,j]=(lfsr[i,j]<=thresh)
-  }
-}
+
+sigmat=(lfsr<=thresh)
+
 
 
 #pull out snps only significant in 1
@@ -33,5 +30,12 @@ barplot(numberqtls,names=NULL,las=2,main="Number Tissue Specific QTLS per Tissue
 text(20,300,tissue.names[18])
 text(48,410,tissue.names[40])
 text(52,250,tissue.names[44])
+
+
+
+
+
 ```
+
+
 

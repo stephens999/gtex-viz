@@ -26,12 +26,9 @@ thresh=as.numeric(input$n_thresh)
   
   ##create a matrix showing whether or no lfsr satisfies threshold
 
-sigmat=matrix(NA,ncol=ncol(lfsr),nrow=nrow(lfsr))
-for(i in 1:nrow(lfsr)){
-  for(j in 1:ncol(lfsr)){
-    sigmat[i,j]=(lfsr[i,j]<=thresh)
-  }
-}
+
+    sigmat=(lfsr<=thresh)
+
 
 
 #pull out snps only significant in 1
