@@ -1,0 +1,52 @@
+---
+title: "TissueSpecificQTLsPerTissue"
+runtime: shiny
+output: html_document
+---
+
+Here, I find the number of QTLs that are specific to a particular tissues, as defined by the fact that they have only one tissue in which their LFSR satisfies a particular threshold.
+
+```{r, echo=FALSE}
+dirpath=("../data/ET_model_stronggenesnps/")
+lfsr = read.table(paste0(dirpath,"lfsr.et_withbma.txt"))
+tissue.names=colnames(lfsr)
+
+
+
+inputPanel(
+  selectInput("n_thresh", label = "Threshold:",
+              choices = c(0.05,0.10,0.5), selected = 0.05)
+)
+
+
+
+
+renderPlot({
+thresh=as.numeric(input$n_thresh)
+  
+  ##create a matrix showing whether or no lfsr satisfies threshold
+
+sigmat=matrix(NA,ncol=ncol(lfsr),nrow=nrow(lfsr))
+for(i in 1:nrow(lfsr)){
+  for(j in 1:ncol(lfsr)){
+    sigmat[i,j]=(lfsr[i,j]<=thresh)
+  }
+}
+
+
+#pull out snps only significant in 1
+sigs=which(rowSums(sigmat)==1)
+
+##find significant tissues
+sigmat[sigs,]
+
+numberqtls=apply(sigmat[sigs,],2,sum)
+
+barplot(numberqtls,names=tissue.names,las=2,main="Number Tissue Specific QTLS per Tissue")
+
+})
+
+
+
+
+```
