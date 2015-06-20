@@ -1,0 +1,41 @@
+---
+title: "tissuespecificbytissue"
+output: html_document
+---
+
+Here, I plot the number of tissue-specific QTLs (lfsr<=0.05) non interactively.
+
+```{r}
+
+dirpath=("../data/ET_model_stronggenesnps/")
+lfsr = read.table(paste0(dirpath,"lfsr.et_withbma.txt"))
+tissue.names=colnames(lfsr)
+thresh=0.05
+  
+  ##create a matrix showing whether or no lfsr satisfies threshold
+
+
+sigmat=(lfsr<=thresh)
+
+
+
+#pull out snps only significant in 1
+sigs=which(rowSums(sigmat)==1)
+
+##find significant tissues
+numberqtls=apply(sigmat[sigs,],2,sum)
+
+
+barplot(numberqtls,names=NULL,las=2,main="Number Tissue Specific QTLS per Tissue",ylim=c(0,420))
+text(20,300,tissue.names[18])
+text(48,410,tissue.names[40])
+text(52,250,tissue.names[44])
+
+
+
+
+
+```
+
+
+

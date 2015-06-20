@@ -1,12 +1,12 @@
 ---
-title: "correlationamonglowlfsr"
+title: "InteractiveSharing"
 runtime: shiny
 output: html_document
-------
+---
 
 Here, I plot the proportion of eqtls active in two tissues (i.e., P(eqtl in i|eqtl in J)) and the correlation of lfsr among tissues.
 
-```{r}
+```{r,echo=FALSE}
 lfsr=read.table("../data//ET_model_stronggenesnps/lfsr.et_withbma.txt")
 thresh=0.10
 library(gplots)
@@ -17,15 +17,17 @@ colnames(intersect.mat)=names
 rownames(intersect.mat)=names
 
 
-
 inputPanel(
-  selectInput("thresh", label = "threshold:",
-              choices = c(0.01,0.05,0.10,0.15,0.5), selected = 0.01),
+  selectInput("n_thresh", label = "LFSR Threshold:",
+              choices = c(0.01,0.05,0.1,0.15,0.20,0.25,0.30,0.35,0.40,0.45,0.5), selected = 0.1)
 )
+
+
 
 renderPlot({
 
-  thresh=as.numeric(input$thresh)
+  thresh=as.numeric(input$n_thresh)
+  
   for(i in 1:nrow(intersect.mat)){
   for(j in 1:ncol(intersect.mat)){
     ti=which(lfsr[,i]<=thresh)
@@ -34,14 +36,20 @@ renderPlot({
   }
 }
 
-
 heatmap.2(intersect.mat, Colv = FALSE, Rowv=FALSE,scale="none", key=TRUE, symkey=FALSE, density.info="none", trace="none", cexRow=0.5,labRow=c(names),labCol=c(names),col=redgreen(10),main="Proportion eQTLs shared by two tissues")
 
 
 })
 
 
+
+```
+
+```{r}
+
+
 heatmap.2(cor(lfsr), Colv = FALSE, Rowv=FALSE,scale="none", key=TRUE, symkey=FALSE, density.info="none", trace="none", cexRow=0.5,labRow=c(names),labCol=c(names),col=redgreen(10),main="Correlation in LFSR between tissues")
 
 ```
+
 
