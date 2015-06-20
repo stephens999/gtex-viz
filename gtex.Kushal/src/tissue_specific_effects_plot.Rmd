@@ -13,6 +13,17 @@ suppressMessages(suppressWarnings(library(data.table)))
 
 ```
 
+## General plot of the t-scores 
+
+We plot the eQTL t-scores across the 44 tissues for 3000 cis-eQTLs in the file.
+
+```{r t-score_plot}
+
+tscore_data=read.table("../data/complete_tscore_eQTL.table.txt");
+
+iplotCurves(tscore_data[1:3000,-1],1:44);
+
+```
 
 We extract the lfspr values for each gene across the different tissues and then we look at the tissue specific effects (if any). Possoble choices of tissues that show tissue specific effects are thyroid, lymphocytes, whole blood and testis. We want to figure out the eQTLs which are specific only to these tissues.
 
