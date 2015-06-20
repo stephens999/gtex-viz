@@ -26,7 +26,7 @@ sigs=which(rowSums(sigmat)==1)
 numberqtls=apply(sigmat[sigs,],2,sum)
 
 
-barplot(numberqtls,names=NULL,las=2,main="Number Tissue Specific QTLS per Tissue",ylim=c(0,420))
+barplot(numberqtls,names=NA,las=2,main="Number Tissue Specific QTLS per Tissue",ylim=c(0,420))
 text(20,300,tissue.names[18])
 text(48,410,tissue.names[40])
 text(52,250,tissue.names[44])
