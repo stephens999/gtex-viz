@@ -19,7 +19,12 @@ In this script, we try to associate with tissue specific eQTLs, the cis-gene exp
 
 ```{r}
 
-cis_gene_data=read.table("../data/cis_gene_expression_per_tissue.txt");
+cis_gene_data=read.table("../data/cis_gene_expression_per_tissue.txt")[,-1];
+
+genesnp.names=as.vector(as.matrix(read.table("../data/gene_snp_names.txt")));
+
+#gene_names_eqtl=unlist(lapply(genesnp.names,function(x) substring(x,1,15)));
+
 
 tissue_expr.names=colnames(cis_gene_data);
 
@@ -30,9 +35,9 @@ tissue_names_filtered=unlist(lapply(as.matrix(names_tissues),
 
 
 
+
 lfsr_data=read.table("../data/lfsr.et_withbma.txt");
 
-genesnp.names=as.vector(as.matrix(read.table("../data/gene_snp_names.txt")));
 
 post.mean.shrink = read.table("../data/post.mean.et_withbma.normalized.txt");
 
