@@ -65,7 +65,7 @@ The tissue names in the gene expression file are given below
 
 ```{r tissue_names_expr}
 
-print(unique(read.table("../data/samples_id.txt")[,3]))
+#print(unique(read.table("../data/samples_id.txt")[,3]))
 
 ```
 
@@ -95,7 +95,13 @@ iplotCurves(post.mean.shrink[sigs[sigs.it],],1:44);
 In the gene expression data file, Testis corresponds to the 49th tissue.
 
 ```{r gene_expr_tissue_1}
-iplotCurves(cis_gene_data_normalized[sigs[sigs.it],],1:53);
+
+tissue_id_gene_expr_data=as.character(read.table("../data/tissue_id_gene_expr_data.txt")[,1]);
+tissue_id_eqtl_study=as.character(read.table("../data/tissue_id_eqtl_study.txt")[,1]);
+
+matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+iplotCurves(cis_gene_data_normalized[sigs[sigs.it],matching_labels],1:44);
 
 ```
 
@@ -125,7 +131,13 @@ iplotCurves(post.mean.shrink[sigs[sigs.it],],1:44);
 
 
 ```{r gene_expr_tissue_2}
-iplotCurves(cis_gene_data_normalized[sigs[sigs.it],],1:53);
+
+tissue_id_gene_expr_data=as.character(read.table("../data/tissue_id_gene_expr_data.txt")[,1]);
+tissue_id_eqtl_study=as.character(read.table("../data/tissue_id_eqtl_study.txt")[,1]);
+
+matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+iplotCurves(cis_gene_data_normalized[sigs[sigs.it],matching_labels],1:44);
 
 ```
 
@@ -156,7 +168,14 @@ iplotCurves(post.mean.shrink[sigs[sigs.it],],1:44);
 
 
 ```{r gene_expr_tissue_3}
-iplotCurves(cis_gene_data_normalized[sigs[sigs.it],],1:53);
+
+tissue_id_gene_expr_data=as.character(read.table("../data/tissue_id_gene_expr_data.txt")[,1]);
+tissue_id_eqtl_study=as.character(read.table("../data/tissue_id_eqtl_study.txt")[,1]);
+
+matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+iplotCurves(cis_gene_data_normalized[sigs[sigs.it],matching_labels],1:44);
+
 ```
 
 
@@ -188,7 +207,14 @@ iplotCurves(post.mean.shrink[sigs[sigs.it],],1:44)
 
 
 ```{r gene_expr_tissue_4}
-iplotCurves(cis_gene_data_normalized[sigs[sigs.it],],1:53);
+
+tissue_id_gene_expr_data=as.character(read.table("../data/tissue_id_gene_expr_data.txt")[,1]);
+tissue_id_eqtl_study=as.character(read.table("../data/tissue_id_eqtl_study.txt")[,1]);
+
+matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+iplotCurves(cis_gene_data_normalized[sigs[sigs.it],matching_labels],1:44);
+
 ```
 
 
