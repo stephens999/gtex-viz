@@ -1,0 +1,220 @@
+---
+title: "gtex"
+author: "Sarah Urbut, Kushal Dey + Matthew Stephens group"
+#output: html_document 
+#output: ioslides_presentation
+output: slidy_presentation
+---
+
+
+```{r, echo=FALSE}
+library(data.table)
+library(qtlcharts)
+datapath = file.path("..","gtex.Kushal","data")
+
+```
+
+
+<!----
+## T-SNE plot, Admixture-clustering of tissues
+
+```{r topicmodel_tsne_tissue, echo=FALSE}
+
+topicmodel_tsne_15 = read.table(file.path(datapath,"topicmodel_samples_tsne_15.txt"));
+sample_id_sub <- read.table(file.path(datapath,"samples_id.txt"))[,3];
+
+suppressWarnings(suppressMessages(iplot(topicmodel_tsne_15[,1],topicmodel_tsne_15[,2],as.numeric(sample_id_sub),sample_id_sub)))
+
+
+```
+---->
+
+
+```{r, echo=FALSE}
+plot_tissuespecific = function(tissuename,lfsr,curvedata,thresh=0.05,subset=1:44){
+  index_tissue=which(tissue_names_filtered %in% tissuename);
+
+  ##create a matrix showing whether or not lfsr satisfies threshold
+  sigmat = lfsr <= thresh;
+  sigs=which(rowSums(sigmat[,index_tissue,drop=FALSE])==length(tissuename) & rowSums(sigmat[,-index_tissue,drop=FALSE])==0)
+  #sigs.it=which(lfsr[sigs,index_tissue]<thresh)
+  iplotCurves(curvedata[sigs,subset],chartOpts=list(curves_xlab="Tissue",curves_ylab="T statistic"))
+}  
+```
+
+```{r, echo=FALSE}
+plot_tissueconsistent = function(lfsr,curvedata,thresh=0.05){
+
+  ##create a matrix showing whether or not lfsr satisfies threshold
+  sigmat = lfsr <= thresh;
+  sigs=which(rowSums(sigmat)==44)
+  iplotCurves(curvedata[sigs,],chartOpts=list(curves_xlab="Tissue",curves_ylab="T statistic"))
+}  
+```
+
+
+```{r read_data, echo=FALSE}
+
+lfsr=read.table(file.path(datapath,"lfsr.et_withbma.txt"))
+post.mean.shrink = read.table(file.path(datapath,"post.mean.et_withbma.normalized.txt"))
+cis_gene_data=read.table(file.path(datapath,"cis_gene_expression_per_tissue.txt"))
+tstats = read.table("../data/ET_model_stronggenesnps/max_tscore_eQTL.table.txt")
+tstats=na.omit(tstats)[,-c(1,2,47)]
+
+#tstats.ash = ash(as.numeric(unlist(tstats)),1)
+
+tissue.names <-  read.table(file.path(datapath,"names_tissues.txt"))[-1]
+tissue_names_filtered=unlist(lapply(as.matrix(tissue.names),
+                            function(x) substring(x,32,nchar(x)-7)));
+gene_info_eqtl = data.frame(fread(file.path(datapath,"gene_info_eqtl.txt")));
+
+genesnp.names=as.vector(as.matrix(read.table(file.path(datapath,"gene_snp_names.txt"))));
+gene_names_GTEX=substring(genesnp.names,1,15);
+
+matching_labels_eqtls_to_gene_info= match(gene_names_GTEX,gene_info_eqtl[,1]);
+
+index_not_found=which(is.na(matching_labels_eqtls_to_gene_info));
+
+matching_labels=matching_labels_eqtls_to_gene_info[which(!is.na(matching_labels_eqtls_to_gene_info))];
+
+
+#set up exp_matching_labels to indicate which of the gene expression data columns are
+#the eqtl tissue columns
+tissue_id_gene_expr_data=as.character(read.table(file.path(datapath,"tissue_id_gene_expr_data.txt"))[,1]);
+tissue_id_eqtl_study=as.character(read.table(file.path(datapath,"tissue_id_eqtl_study.txt"))[,1]);
+exp_matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+
+
+flag=paste0(gene_info_eqtl[matching_labels,1],", ",
+                      "name-",gene_info_eqtl$Associated.Gene.Name[matching_labels],", ",
+                      "descr-",gene_info_eqtl$Description[matching_labels],",",
+                      "chr-",gene_info_eqtl$Chromosome.Name[matching_labels]);
+
+post.mean.shrink.matched=post.mean.shrink[-index_not_found,];
+rownames(post.mean.shrink.matched)=flag;
+
+
+lfsr.matched=lfsr[-index_not_found,];
+
+```
+
+
+## Example top eQTLs: T statistics in 44 tissues
+
+```{r eQTL-tstats, echo=FALSE}
+iplotCurves(tstats[1:200,],chartOpts=list(curves_xlab="Tissue",curves_ylab="T statistic"))
+
+#plot_tissuespecific("Cells_EBV-transformed_lymphocytes",lfsr, tstats,0.05)
+#plot_tissuespecific("Cells_EBV-transformed_lymphocytes",lfsr.matched, post.mean.shrink.matched,0.05)
+```
+
+
+## Method Outline
+
+Multi-tissue eQTL mapping is basically trying to cluster these (noisy!) profiles
+
+  
+## Tissue-strong eQTLs: Testis
+
+```{r testis, echo=FALSE}
+plot_tissuespecific("Testis",lfsr, tstats,0.05)
+```
+
+## Tissue-strong eQTLs: Whole-Blood
+
+```{r blood, echo=FALSE}
+plot_tissuespecific("Whole_Blood",lfsr, tstats,0.05)
+```
+
+## Tissue-strong eQTLs: LCLs
+
+```{r lymphocytes_strong, echo=FALSE}
+plot_tissuespecific("Cells_EBV-transformed_lymphocytes",lfsr, tstats,0.05)
+```
+
+## Also many "tissue-consistent" eQTLs
+
+```{r consistent, echo=FALSE}
+plot_tissueconsistent(lfsr,tstats,0.005)
+```
+
+
+## Method Outline
+
+- Model true $\beta$ values as mixture of "tissue-specific" and "tissue-consistent" ("BMAlite")
+- ...plus additional components to capture other sub-types of QTL
+- Fit the model; compute posterior distribution on effects in each tissue.
+- Declare eQTL as ``significant" in tissue if data+model suggest strong confidence in direction (sign) of effect.
+  
+
+## That U is still with us...
+
+```{r number of tissues, echo=FALSE}
+thresh=0.05
+sigmat=(lfsr<=thresh)
+nsig= rowSums(sigmat)
+hist(nsig[nsig>0],main="Number of tissues in which eQTl significant", nclass=45,xlab="Number of tissues")
+
+```
+
+
+## But tissue-specific dominated by a few tissues...
+
+```{r tissue-specific-hist, echo=FALSE}
+
+#pull out snps only significant in 1
+specifics=which(rowSums(sigmat)==1)
+
+##find significant tissues
+nqtls=apply(sigmat[specifics,],2,sum)
+tissue.names=colnames(lfsr)
+barplot(nqtls,names=NA,las=2,main="Number Tissue Specific QTLS per Tissue",ylim=c(0,420))
+text(20,300,tissue.names[18])
+text(48,410,tissue.names[40])
+text(52,250,tissue.names[44])
+```
+
+## Lots of sharing, but similar tissues share more
+
+```{r sharing-corplot, echo=FALSE}
+  iplotCorr(sigmat,chartOpts=list(corcolors = c("white", "white","white", "crimson"),zlim=c(0,0.5,0.7,1),margin = list(left=104, top=40, right=5, bottom=70, inner=5)),reorder=TRUE)
+```
+
+
+## Maybe some false positives?
+
+```{r nulls, echo=FALSE}
+  iplotCurves(tstats[nsig==0,],chartOpts=list(curves_xlab="Tissue",curves_ylab="T statistic"))
+```
+
+## Tissue-specific eQTLs don't (usually) show Tissue-specific expression
+
+- log(mean Expression) for genes with Testis-specific eQTLs
+```{r gene_expr, echo=FALSE}
+plot_tissuespecific("Testis",lfsr,log(cis_gene_data[,-1])[exp_matching_labels])
+```
+
+
+## Things to worry about: Correlations between tissues
+
+```{r tissuecorr, echo=FALSE}
+ident=function(x){x}
+highcorr = read.table("../gtex.Kushal/data/prop_sig_matrix_0_3.txt",header=TRUE)
+cc = as.matrix(highcorr)
+dimnames(cc) = dimnames(suppressWarnings(cor(highcorr)))
+suppressWarnings(iplotCorr(highcorr,corr=cc))
+#iheatmap(highcorr)
+```
+
+## Summary
+
+- We have (very) preliminary results multi-tissue mapping for 44 tissues
+- Overall, continue to see some strong shared eQTLs as well as some highly tissue-specific signals
+in a few tissues
+- And lots in between (but beware of thresholding effects...)
+- Strong tissue-specific eQTLs not primarily driven by tissue-specific expression
+- Brain tissues may show less overlap with others (and more with one another)
+
+(Thanks to Karl Broman and his R/qtlcharts package)
+
