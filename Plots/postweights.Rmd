@@ -1,0 +1,112 @@
+---
+title: "plot.by.post.weights"
+author: "StephensLab"
+date: "June 19, 2015"
+output: html_document
+---
+
+```{r packages,echo=FALSE}
+suppressMessages(suppressWarnings(library(qtlcharts)))
+
+library("qtlcharts")
+
+```
+
+Here, I plot a histogram of the sum of the posterior weights for each $U_{k}$ across all omega. Recall the components:
+
+$U_{k}=1$ Corresponds to the 44x44 Identity Matrix
+$U_{k}=2$ Corresponds the 44x44 Empirical Covariance Matrix (T'T)
+$U_{k}=2$ Corresponds to the rank 2 PCA Approximation
+$U_{k}=3-8$ Corresponds to single rank SFA Approximation
+$U_{k}=9$ Corresponds to rank 5 Approximation
+$U_{k}=10-53$ Correspond to Singleton Configs
+$U_{k}=54$ Corresponds to full configuration
+
+The overarching theme is that the majority of SNPS find their maximal responsibility at one of the fuller rank components (i.e., XtX or rank 5 SFA ).
+```{r read_data}
+
+post.weights=readRDS("../data/ET_model_stronggenesnps/post.weight.et_withbma.rds")
+genesnpnames=read.table("../data//ET_model_stronggenesnps/genesnpnames.txt")[,1]
+tissue.names=read.table("../data//ET_model_stronggenesnps/tissuenames.txt")[,1]
+post.mean.shrink = read.table("../gtex.Kushal/data/post.mean.et_withbma.normalized.txt");
+rownames(post.mean.shrink)=genesnpnames
+colnames(post.mean.shrink)=tissue.names
+
+##Find the maximum responsibilitity for each componenet
+weightsort=apply(post.weights,1,function(x){
+  weightmat=matrix(x,ncol=54,nrow=22,byrow=TRUE)
+  which.max(colSums(weightmat))
+})
+
+
+hist(weightsort,labels=seq(1:44),freq=FALSE,nclass=50,las=2,ylim=c(0,0.9),main="Maximum Responsibility over Omega")
+text(x=2,y=0.6,"Uk=2")
+text(x=9,y=0.4,"Uk=9")
+text(x=27,y=0.2,"Uk=27")
+text(x=49,y=0.1,"Uk=49")
+
+
+
+
+#You can visit the interactive histogram at here##
+
+# set_credentials_file("surbut", "wpbuudeooe")
+# 
+# py=plotly()
+# library(plotly)
+# 
+# data <- list(
+#   
+#     x = weightsort,
+#     type = "histogram"
+#     
+#   )
+#   
+#   layout <- list(
+#   title = "Maximum Posterior Weight Across Omega",
+#   xaxis = list(title = "UK"),
+#   yaxis = list(title = "Count"),
+#   barmode = "overlay",
+#   bargap = 0.25,
+#   bargroupgap = 0.3
+# )
+# response <- py$plotly(data, kwargs=list(filename="basic-histogram", fileopt="overwrite"))
+# url <- response$url
+# 
+# 
+
+
+```
+
+Now, we might want to observe the pattern of effects (i.e., shrunken posterior means of t statistics) for SNPs with high responsibility at a particular component type. First, I plot eQTL with maximum loading on the empirical covariance matrix and on the rank 5 SFA approximation.
+
+```{r,xtxers}
+###Plot the ones with maximal loading on XtX
+xtxers=which(weightsort==2)
+empcov=sample(xtxers,1000)
+iplotCurves(post.mean.shrink[empcov,],1:44)
+
+#sfaers##
+sfaers=which(weightsort==9)
+
+iplotCurves(post.mean.shrink[sfaers,],1:44)
+```
+
+Now I plot those with maximum responsibility at U_k = 27, which corresponds to EBV (i.e, tissuenames 18).
+
+```{r, EBV}
+##27ers##
+twentyseveners=which(weightsort==27)
+
+iplotCurves(post.mean.shrink[twentyseveners,],1:44)
+```
+
+You can see that the other common loading is at $U_k$ = 44, which corresponds to testes.
+
+```{r, TESTES}
+
+fortyniners=which(weightsort==49)
+iplotCurves(post.mean.shrink[fortyniners,],1:44)
+
+```
+
