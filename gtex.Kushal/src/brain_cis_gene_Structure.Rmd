@@ -1,0 +1,80 @@
+---
+title: "Evidence of cell type specific effects in Structure"
+author: "StephensLab"
+date: "June 23, 2015"
+output: html_document
+---
+
+In the GTEX Jamboree talk on June 22nd, 2015, Simon Xi and Jie Quan showed a cell type specific analysis where they took some cell type specifi marker genes from brain and tried to cluster the brain into different brain cell types. They considered 4 cell types as far as I remmeber, including neuronal and glial cells and they showed that brain ceebellum and cerebellur hemisphere contain around 80 % neuronal cell types. We tried to see that without the assumption of marker genes, only through the cis genes we obtained, whether we are getting similar results using Admixture. This would confirm that Structure is indeed picking up valid cell type specific effects.  
+
+```{r packages}
+suppressMessages(suppressWarnings(library(tsne)))
+suppressMessages(suppressWarnings(library(data.table)))
+library(qtlcharts)
+library(maptpx)
+#library(iplots)
+
+```
+
+```{r}
+
+cis_gene_data=read.table("../data/cis_gene_expression_per_tissue.txt")[,-1];
+
+tissue_id_gene_expr_data=as.character(read.table("../data/tissue_id_gene_expr_data.txt")[,1]);
+tissue_id_eqtl_study=as.character(read.table("../data/tissue_id_eqtl_study.txt")[,1]);
+
+matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+cis_gene_data_mod = cis_gene_data[,matching_labels];
+
+### brain data
+
+cis_brain_gene_data = cis_gene_data_mod[,7:16];
+
+K=4;
+Topic_Clus=topics(t(cis_brain_gene_data),K,tol=0.01);
+
+docweights=Topic_Clus$omega;
+par(mar=c(10,4,4,2))
+barplot(t(docweights),col=2:(K+1),axisnames=F,space=0,border=NA,main=paste("No. of clusters=",K),las=1,ylim=c(0,1),cex.axis=1.5,cex.main=1.4)
+
+axis(1,at=0.5:9.5,colnames(cis_brain_gene_data),las=2);
+
+
+K=5;
+Topic_Clus=topics(t(cis_brain_gene_data),K,tol=0.01);
+
+docweights=Topic_Clus$omega;
+par(mar=c(10,4,4,2))
+barplot(t(docweights),col=2:(K+1),axisnames=F,space=0,border=NA,main=paste("No. of clusters=",K),las=1,ylim=c(0,1),cex.axis=1.5,cex.main=1.4)
+
+axis(1,at=0.5:9.5,colnames(cis_brain_gene_data),las=2);
+
+
+```
+
+The above two Structure plots seem to pick up the neuronal cell types pretty well, which is encouraging.
+
+Also, we perform a full 44 tissue topic model based on the cis gene level data only, and we find that neuronal cell types still show up pretty nicely.
+
+```{r cis_gene_level_Structure}
+
+K=12;
+
+# Topic_Clus=topics(t(cis_gene_data_mod),K,tol=0.001);
+
+# write.table(Topic_Clus$omega,"../data/Topic_model_omega_cis_gene_44_tissues.txt");
+# write.table(Topic_Clus$theta,"../data/Topic_model_theta_cis_gene_44_tissues.txt");
+color=c("red","blue","cornflowerblue","black","cyan","darkblue",
+  "brown4","burlywood","darkgoldenrod1","darkgray","deepskyblue","darkkhaki",
+  "firebrick","darkorchid","hotpink","green","magenta","yellow", "azure1","azure4");
+
+docweights=as.matrix(read.table("../data/Topic_model_omega_cis_gene_44_tissues.txt"));
+
+par(mar=c(10,4,4,2))
+barplot(t(docweights),col=color[1:K],axisnames=F,space=0,border=NA,main=paste("No. of clusters=",K),las=1,ylim=c(0,1),cex.axis=1.5,cex.main=1.4)
+
+axis(1,at=0.5:43.5,colnames(cis_gene_data_mod),las=2);
+
+```
+
