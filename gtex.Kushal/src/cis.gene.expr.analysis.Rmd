@@ -1,0 +1,222 @@
+---
+title: "cis gene expression analysis"
+author: "StephensLab"
+date: "June 19, 2015"
+output: html_document
+---
+
+```{r packages}
+suppressMessages(suppressWarnings(library(tsne)))
+suppressMessages(suppressWarnings(library(data.table)))
+library(qtlcharts)
+#library(iplots)
+
+```
+
+
+
+In this script, we try to associate with tissue specific eQTLs, the cis-gene expression pattern and try to see if the tissue-specificity gets reflected in the cis gene expression as well.
+
+```{r}
+
+cis_gene_data=read.table("../data/cis_gene_expression_per_tissue.txt")[,-1];
+
+genesnp.names=as.vector(as.matrix(read.table("../data/gene_snp_names.txt")));
+
+#gene_names_eqtl=unlist(lapply(genesnp.names,function(x) substring(x,1,15)));
+
+
+tissue_expr.names=colnames(cis_gene_data);
+
+names_tissues <-  read.table("../data/names_tissues.txt")[-1];
+
+tissue_names_filtered=unlist(lapply(as.matrix(names_tissues),
+                            function(x) substring(x,32,nchar(x)-7)));
+
+
+
+
+lfsr_data=read.table("../data/lfsr.et_withbma.txt");
+
+
+post.mean.shrink = read.table("../data/post.mean.et_withbma.normalized.txt");
+
+rownames(post.mean.shrink)=genesnp.names;
+rownames(cis_gene_data)=genesnp.names;
+
+
+##  normalizing the log gene expression data using L-2 norm
+
+L2norm = function(x){return(sqrt(sum(x^2)))}
+
+norm_effects = function(m,standardize=TRUE){
+  max_pos = apply(m,1,max)
+  max_neg = apply(-m,1,max)
+  max_sign = ifelse(max_pos>max_neg, 1,-1) #find the sign of the largest effect
+  if(standardize){max_sign=max_sign* apply(m,1,L2norm)}
+  m/max_sign
+}
+
+cis_gene_data_normalized=norm_effects(log(cis_gene_data+1));
+
+```
+
+The tissue names in the gene expression file are given below 
+
+```{r tissue_names_expr}
+
+#print(unique(read.table("../data/samples_id.txt")[,3]))
+
+```
+
+## Testis
+
+```{r cis_eqtl_plots_tissue_1}
+index_tissue=which(tissue_names_filtered=="Testis");
+
+
+thresh=0.05
+
+  ##create a matrix showing whether or no lfsr satisfies threshold
+
+sigmat =lfsr_data <= thresh;
+
+
+sigs=which(rowSums(sigmat)==1)
+
+sigs.it=which(lfsr_data[sigs,index_tissue]<thresh)
+
+#cis_gene_data_mod=apply(cis_gene_data,c(1,2),function(x) min(x,5000));
+iplotCurves(post.mean.shrink[sigs[sigs.it],],1:44);
+
+```
+
+
+In the gene expression data file, Testis corresponds to the 49th tissue.
+
+```{r gene_expr_tissue_1}
+
+tissue_id_gene_expr_data=as.character(read.table("../data/tissue_id_gene_expr_data.txt")[,1]);
+tissue_id_eqtl_study=as.character(read.table("../data/tissue_id_eqtl_study.txt")[,1]);
+
+matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+iplotCurves(cis_gene_data_normalized[sigs[sigs.it],matching_labels],1:44);
+
+```
+
+## Lymphocytes
+
+
+```{r cis_eqtl_plots_tissue_2}
+index_tissue=which(tissue_names_filtered=="Cells_EBV-transformed_lymphocytes");
+
+
+thresh=0.05
+
+  ##create a matrix showing whether or no lfsr satisfies threshold
+
+sigmat =lfsr_data <= thresh;
+
+
+sigs=which(rowSums(sigmat)==1)
+
+sigs.it=which(lfsr_data[sigs,index_tissue]<thresh)
+
+#cis_gene_data_mod=apply(cis_gene_data,c(1,2),function(x) min(x,5000));
+iplotCurves(post.mean.shrink[sigs[sigs.it],],1:44);
+
+```
+
+
+
+```{r gene_expr_tissue_2}
+
+tissue_id_gene_expr_data=as.character(read.table("../data/tissue_id_gene_expr_data.txt")[,1]);
+tissue_id_eqtl_study=as.character(read.table("../data/tissue_id_eqtl_study.txt")[,1]);
+
+matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+iplotCurves(cis_gene_data_normalized[sigs[sigs.it],matching_labels],1:44);
+
+```
+
+
+## Pancreas
+
+
+```{r cis_eqtl_plots_tissue_3}
+index_tissue=which(tissue_names_filtered=="Pancreas");
+
+
+thresh=0.05
+
+  ##create a matrix showing whether or no lfsr satisfies threshold
+
+sigmat =lfsr_data <= thresh;
+
+
+sigs=which(rowSums(sigmat)==1)
+
+sigs.it=which(lfsr_data[sigs,index_tissue]<thresh)
+
+#cis_gene_data_mod=apply(cis_gene_data,c(1,2),function(x) min(x,5000));
+iplotCurves(post.mean.shrink[sigs[sigs.it],],1:44);
+
+```
+
+
+
+```{r gene_expr_tissue_3}
+
+tissue_id_gene_expr_data=as.character(read.table("../data/tissue_id_gene_expr_data.txt")[,1]);
+tissue_id_eqtl_study=as.character(read.table("../data/tissue_id_eqtl_study.txt")[,1]);
+
+matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+iplotCurves(cis_gene_data_normalized[sigs[sigs.it],matching_labels],1:44);
+
+```
+
+
+## Brain
+
+```{r cis_eqtl_plots_tissue_4}
+
+index_tissue=7:16;
+
+
+thresh=0.05
+
+  ##create a matrix showing whether or no lfsr satisfies threshold
+
+sigmat =lfsr_data <= thresh;
+
+lfsr_red=t(apply(lfsr_data,1,function(x){c(x[1:6],min(x[7:16]),x[17:44])}))
+
+
+sigs=which(rowSums(sigmat)==1)
+
+sigs.it=which(lfsr_red[sigs,index_tissue]<thresh)
+
+
+iplotCurves(post.mean.shrink[sigs[sigs.it],],1:44)
+
+
+```
+
+
+```{r gene_expr_tissue_4}
+
+tissue_id_gene_expr_data=as.character(read.table("../data/tissue_id_gene_expr_data.txt")[,1]);
+tissue_id_eqtl_study=as.character(read.table("../data/tissue_id_eqtl_study.txt")[,1]);
+
+matching_labels=which(!is.na(match(tissue_id_gene_expr_data,tissue_id_eqtl_study)));
+
+iplotCurves(cis_gene_data_normalized[sigs[sigs.it],matching_labels],1:44);
+
+```
+
+
+Overall impression, it does not seem that all the cis genes show the tissue specific pattern corresponding to the cis-eQTLs, but some of them do, which may range from pretty small (as in the case of Pancreas which seems to have only on major tissue specific gene) to fair amount (lymphocytes and testis), but overall, the tissue specific effects are not so strong.
+

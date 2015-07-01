@@ -1,0 +1,57 @@
+---
+title: "Tissue Specific Bar Chart"
+output: html_document
+---
+
+Here is an interactive plot of the number of tissue-specific snps per tissue.
+
+```{r, eval=FALSE,echo=TRUE}
+dirpath=("../data/ET_model_stronggenesnps/")
+lfsr = read.table(paste0(dirpath,"lfsr.et_withbma.txt"))
+tissue.names=colnames(lfsr)
+thresh=0.05
+  
+  ##create a matrix showing whether or no lfsr satisfies threshold
+
+
+sigmat=(lfsr<=thresh)
+
+sigmat=(lfsr<=thresh)
+#pull out snps only significant in 1
+sigs=which(rowSums(sigmat)==1)
+##find significant tissues
+numberqtls=as.vector(apply(sigmat[sigs,],2,sum))
+
+
+
+##To install:
+
+#install_github("ropensci/plotly")
+#devtools::install_github("ropensci/plotly")
+library(plotly)
+
+data <- list(
+  list(
+    x = c(tissue.names),
+    y = c(numberqtls),
+    marker = list(color = "rgb(142, 124, 195)"),
+    type = "bar"
+  )
+)
+layout <- list(
+  title = "Number of Tissue Specific QTLs",
+  font = list(family = "Raleway, sans-serif"),
+  showlegend = FALSE,
+  xaxis = list(tickangle = -45),
+  yaxis = list(
+    zeroline = FALSE,
+    gridwidth = 2
+  ),
+  bargap = 0.05
+)
+response <- py$plotly(data, kwargs=list(layout=layout, filename="bar-with-hover-text", fileopt="overwrite"))
+url <- response$url
+
+```
+
+Now, just open the url and you've got your barchart.
