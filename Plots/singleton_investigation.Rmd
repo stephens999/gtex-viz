@@ -1,0 +1,38 @@
+---
+title: "denoised_singletons"
+output: html_document
+---
+
+```{r}
+lfsr=read.table("../data/matQTLResults/1000trainedlfsr.txt")[,-1]
+post.means=read.table("../data/matQTLResults/1000trainedposterior.means.txt")[,-1]
+t.stat=read.table("../data/matQTLResults/maxt.txt")
+rownames(post.means)=rownames(t.stat)
+rownames(lfsr)=rownames(t.stat)
+
+dist=as.matrix(lfsr)<=0.05
+hist(rowSums(dist),nclass=50,main="Number of Tissues with LFSR<=0.05")
+
+ones=which(rowSums(dist)==1)
+
+library("qtlcharts")
+
+##First, we plot the 'singletons' of the 'noisy tstats'
+iplotCurves(as.matrix(t.stat)[ones,],1:44)
+
+##Now, we plot the matrix-ash shrunken tstats. Look how clean!
+
+iplotCurves(as.matrix(post.means)[ones,],1:44);
+```
+
+
+                
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
