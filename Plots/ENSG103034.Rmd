@@ -1,0 +1,57 @@
+---
+title: "ENSG00000103034 Plots"
+output: html_document
+---
+
+In this document, I plot the Example Cited in the GTEX pilot paper.
+
+```{r}
+
+dir=paste("../data/matQTLResults/")
+pm=read.table(paste0(dir,"1000trainedposterior.means.txt"))
+lfsr=read.table(paste0(dir,"1000trainedlfsr.txt"))
+
+rownames(pm)=pm[,1]
+rownames(lfsr)=lfsr[,1]
+
+
+
+###make sure the dimensions are good
+pm=pm[,-1]
+lfsr=lfsr[,-1]
+
+tstat=read.table(paste0(dir,"maxt.txt"))
+colnames(pm)=colnames(tstat)
+colnames(lfsr)=colnames(tstat)
+
+##Rough check that my method is 'reasonable'
+cor(unlist(as.vector(pm)),unlist(as.vector(tstat)))
+
+grep("ENSG00000103034",rownames(pm))
+
+ind=grep("ENSG00000103034",rownames(pm))
+
+
+```
+
+First, let's plot the original tstatistics.
+```{r, echo=FALSE}
+library("qtlcharts")
+
+ind=c(ind,2000,5000)
+iplotCurves(tstat[ind,],1:44);
+```
+
+Now we plot the shrunken posterior T statistics.
+```{r, echo=FALSE}
+
+
+iplotCurves(pm[ind,],1:44);
+```
+
+And here we plot the lfsr.
+```{r, echo=FALSE}
+
+
+iplotCurves((lfsr[ind,]),1:44);
+```
